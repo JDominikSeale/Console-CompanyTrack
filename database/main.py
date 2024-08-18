@@ -14,15 +14,20 @@ class db():
         return result
     
     def put(self, command, values):
-        values = self.valueClean(values)
+        if type(values) == tuple:
+            values = self.valueClean(values)
+        else:
+            values = (values,)
         try:
+            print(values)
             self.cursor.execute(command, values)
             self.conn.commit()
+            return self.cursor.lastrowid, True
         except sqlite3.IntegrityError:
             return "Email already exists", False
         except Exception as e:
             print(e)
-    
+            return e, False
 
     def valueClean(self, values):
         if type(values) == tuple:
@@ -36,5 +41,5 @@ class db():
 
 if __name__ == "__main__":
     a = db()
-    b = a.find("SELECT job_id, description, address, created_date, predicted_end_datetime, price_job FROM Job_Offers RIGHT JOIN Job_Work ON Job_Work.worker != Job_Offers.job_id")
+    b = a.put("INSERT INTO Companies (name) VALUES (?)" , ("testCompany6",))
     print(b)
