@@ -147,8 +147,84 @@ class Main:
             self.pause()
             self.companyManagement()
         else:
+            companyID = result[0]
             code = self.hashing(name)
-            result = self.db.put("INSERT INTO Codes (code, company) VALUES (?, ?)", (code, result[0]))
+            result = self.db.put("INSERT INTO Codes (code, company) VALUES (?, ?)", (code, companyID))
+            result = self.db.put("INSERT INTO Company_User_Relationship (company, user, role) VALUES (?, ?, 'owner')", (companyID, self.user_id))
+
+    def joinCompany(self):
+        self.clearScreen()
+        print("JOIN COMPANY")
+        code = input("Enter company code: ")
+        result = self.db.find("SELECT Companies.name FROM Companies JOIN Codes ON Codes.company_id = Companies.company_id WHERE Codes.code = ?", (code)).fetchone()
+        if result != None:
+            print(f"Are you sure you wish to join {result} (Y/N)")
+            choice = input("Enter choice: ")
+            if choice.lower() == "y":
+                self.db.put("INSERT INTO Company_User_Relationship (company, user, role) VALUES (?, ?, 'worker')", (result, self.user_id))
+                if result[1] == False:
+                    print("Error Joining Company")
+                    self.pause()
+                    self.companyManagement()
+                else:
+                    print(f"Joined {result}")
+                    self.pause()
+                    self.companyManagement()
+
+
+    def leaveCompany(self):
+        self.clearScreen()
+        print("LEAVE COMPANY")
+        choice = input("Are you sure you wish to leave your company? (Y/N)")
+        if choice.lower() == "y":
+            print("Please enter the name of the company you wish to leave")
+            self.viewCompaies()
+            company = input("Enter company name: ")
+            result = self.db.put("DELTE FROM Company_User_Relationship WHERE company = ? AND user = ?", (company, self.user_id))
+            if result[1] == True:
+                print(f"Left {company}")
+                self.pause()
+                self.companyManagement()
+            else:
+                print("Error Leaving Company")
+                self.pause()
+                self.companyManagement()
+        elif choice.lower() == "n":
+            self.companyManagement()
+
+    def viewCompanies(self, calledOn=False):
+        if calledOn == False:
+            self.clearScreen()
+        print("COMPANIES")
+        result = self.db.find("SELECT Companies.name FROM Companies JOIN Company_User_Relationship ON Company_User_Relationship.company = Companies.company_id JOIN Users ON Users.user_id = Company_User_Relationship.user WHERE Users.user_id = ?", (self.user_id)).fetchall()
+        if result == ():
+            print("No Companies")
+        else:
+            self.displayMultiResult(result)
+            if calledOn == False:
+                self.pause()
+                self.companyManagement()
+
+    def editCompany(self):
+        self.clearScreen()
+        print("EDIT COMPANY")
+        print("1. Edit Company Name")
+        print("2. Edit Company Code")
+        print("3. Edit Company Role")
+        print("9. Back")
+        choice = input("Enter choice: ")
+        if choice == "1":
+            self.editCompanyName()
+        elif choice == "2":
+            self.editCompanyCode()
+        elif choice == "3":
+            self.editCompanyRole()
+        elif choice == "9":
+            self.companyManagement()
+        else:
+            print("Invalid choice")
+            self.pause()
+            self.editCompany()
 
     def companyManagement(self):
         self.clearScreen()
@@ -167,7 +243,7 @@ class Main:
         elif choice == "3":
             self.leaveCompany()
         elif choice == "4":
-            self.viewCompany()
+            self.viewCompanies(True)
         elif choice == "5":
             self.editCompany()
         elif choice == "9":
