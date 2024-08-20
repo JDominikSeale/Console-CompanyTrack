@@ -204,6 +204,32 @@ class Main:
             if calledOn == False:
                 self.pause()
                 self.companyManagement()
+            return result
+
+    def editCompanyName(self):
+        self.clearScreen()
+        print("EDIT COMPANY NAME")
+        compaines = self.viewCompanies()
+        companyID = input("Enter company ID: ")
+        if companyID in compaines:
+            name = input("Enter new company name: ")
+            self.db.put("UPDATE Companies SET name = ? WHERE company_id = ?", (name, companyID))
+            print("Company name updated")
+            self.pause()
+            self.companyManagement()
+
+    def editCompanyCode(self):
+        self.clearScreen()
+        print("EDIT COMPANY CODE")
+        compaines = self.viewCompanies()
+        companyID = input("Enter company ID: ")
+        if companyID in compaines:
+            code = self.hashing()
+            self.db.put("UPDATE Codes SET code = ? WHERE company_id = ?", (code, companyID))
+            print("Company code updated")
+            self.pause()
+            self.companyManagement()
+
 
     def editCompany(self):
         self.clearScreen()
@@ -217,8 +243,6 @@ class Main:
             self.editCompanyName()
         elif choice == "2":
             self.editCompanyCode()
-        elif choice == "3":
-            self.editCompanyRole()
         elif choice == "9":
             self.companyManagement()
         else:
